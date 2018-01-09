@@ -9,11 +9,21 @@
 package com.khoben.samples.studyar.AR;
 
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.khoben.samples.studyar.AR.Render.ImageRenderer;
+import com.khoben.samples.studyar.AR.Render.TextureHelper;
+import com.khoben.samples.studyar.DBHandler.DBHandler;
+import com.khoben.samples.studyar.ImageProcessing.ImageProcessing;
+import com.khoben.samples.studyar.Lesson;
+import com.khoben.samples.studyar.MainActivity;
 
 import cn.easyar.CameraCalibration;
 import cn.easyar.CameraDevice;
@@ -45,11 +55,17 @@ public class HelloAR {
     private Vec4I viewport = new Vec4I(0, 0, 1280, 720);
     private boolean isTracked = false;
     private String current_target = "undefined";
+    private String previus_target = "undefined";
+    private Lesson curLesson;
     private final String TAG = "HelloAR";
-    private final String PATH_TO_MARKERS = "json/auds.json";
+    private final String PATH_TO_MARKERS = "json/auds_1.json";
+
+    private Bitmap bitmap;
+    private ImageProcessing imageProcessing;
 
     public HelloAR() {
         trackers = new ArrayList<ImageTracker>();
+        imageProcessing = new ImageProcessing(MainActivity.activityReference);
     }
 
     private void loadFromImage(ImageTracker tracker, String path) {
@@ -218,25 +234,63 @@ public class HelloAR {
             }
 
             isTracked = false;
+
+            ImageTarget imagetarget = null;
+            TargetInstance curtarget = null;
+
             for (TargetInstance targetInstance : frame.targetInstances()) {
                 int status = targetInstance.status();
                 if (status == TargetStatus.Tracked) {
+                    curtarget = targetInstance;
                     Target target = targetInstance.target();
-                    ImageTarget imagetarget = target instanceof ImageTarget ? (ImageTarget) (target) : null;
+                    imagetarget = target instanceof ImageTarget ? (ImageTarget) (target) : null;
                     if (imagetarget == null) {
                         continue;
                     }
                     if (box_renderer != null) {
-                        isTracked = true;
-                        current_target = imagetarget.name();
                         // Log.i(TAG,String.format("Target tracked: %s",current_target));
-                        box_renderer.render(camera.projectionGL(0.2f, 500.f), targetInstance.poseGL(), imagetarget.size());
+                        current_target = imagetarget.name();
+                        isTracked = true;
+                        break;
                     }
                 }
             }
             if (isTracked == false) {
                 current_target = "undefined";
             }
+
+            if (!current_target.equals(previus_target)) {
+                Log.i(TAG,String.format("current: %s, prev: %s",current_target,previus_target));
+                if (!current_target.equals("undefined")) {
+                    DBHandler.timetableReference.child(current_target).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            curLesson = dataSnapshot.getValue(Lesson.class);
+                            bitmap = imageProcessing.generateBitmap(curLesson);
+                            TextureHelper.updateBitmap(bitmap);
+                            System.out.println(curLesson.toString());
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+
+
+                    });
+                }
+                else{
+                    Log.i(TAG,"Bitmap is NULL");
+                }
+            }
+
+            if (isTracked == true) {
+                box_renderer.render(camera.projectionGL(0.2f, 500.f), curtarget.poseGL(), imagetarget.size());
+            }
+
+            previus_target = current_target;
+
         } finally {
             frame.dispose();
         }

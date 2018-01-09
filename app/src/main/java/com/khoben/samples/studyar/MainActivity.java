@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageView;
     private AR ar;
 
-    public static Context activityReference;
+    public static MainActivity activityReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
