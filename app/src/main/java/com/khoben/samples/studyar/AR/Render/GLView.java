@@ -17,14 +17,14 @@ import javax.microedition.khronos.opengles.GL10;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 
-import com.khoben.samples.studyar.AR.MyAR;
+import com.khoben.samples.studyar.AR.AR;
 
 import cn.easyar.Engine;
 
 public class GLView extends GLSurfaceView {
-    private MyAR myAR;
+    private AR myAR;
 
-    public GLView(Context context, final MyAR myAR) {
+    public GLView(Context context, final AR myAR) {
         super(context);
         setEGLContextFactory(new ContextFactory());
         setEGLConfigChooser(new ConfigChooser());

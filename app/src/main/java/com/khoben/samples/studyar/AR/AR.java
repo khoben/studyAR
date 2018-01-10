@@ -11,11 +11,13 @@ public interface AR {
 
     GLSurfaceView getGLView();
 
+    void setGLView(GLSurfaceView glView);
+
     boolean initialize();
 
-    void start();
+    boolean start();
 
-    void stop();
+    boolean stop();
 
     void dispose();
 

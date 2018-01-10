@@ -1,23 +1,23 @@
 {
   "images": [
     {
-      "image": "aud/307.jpg",
+      "image": "aud/full/307.jpg",
       "name": "307"
     },
     {
-      "image": "aud/314.jpg",
+      "image": "aud/full/314.jpg",
       "name": "314"
     },
     {
-      "image": "aud/312.jpg",
+      "image": "aud/full/312.jpg",
       "name": "312"
     },
     {
-      "image": "aud/316.jpg",
+      "image": "aud/full/316.jpg",
       "name": "316"
     },
     {
-      "image": "aud/318.jpg",
+      "image": "aud/full/318.jpg",
       "name": "318"
     }
   ]

@@ -8,15 +8,9 @@
 
 package com.khoben.samples.studyar.AR.Render;
 
-import android.graphics.Bitmap;
 import android.opengl.GLES20;
-import android.util.Log;
-
-import com.khoben.samples.studyar.AR.MyAR;
-import com.khoben.samples.studyar.MainActivity;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
@@ -32,11 +26,10 @@ public class ImageRenderer {
     private int vbo_coord_box;
     private int vbo_tex_box;
     private int vbo_faces_box;
-    private static int texture_id;
 
     private final String TAG = "ImageRenderer";
 
-    private String box_vert = "uniform mat4 trans;\n"
+    private final String box_vert = "uniform mat4 trans;\n"
             + "uniform mat4 proj;\n"
             + "attribute vec4 coord;\n"
             + "attribute vec2 texcoord;\n"
@@ -49,7 +42,7 @@ public class ImageRenderer {
             + "}\n"
             + "\n";
 
-    private String box_frag = "#ifdef GL_ES\n"
+    private final String box_frag = "#ifdef GL_ES\n"
             + "precision highp float;\n"
             + "#endif\n"
             + "varying vec2 vtexcoord;\n"
@@ -182,8 +175,6 @@ public class ImageRenderer {
     }
 
     public void render(Matrix44F projectionMatrix, Matrix44F cameraview, Vec2F size) {
-
-       // Log.i(TAG, "Render");
         float size0 = size.data[0];
         float size1 = size.data[1];
 
@@ -210,24 +201,10 @@ public class ImageRenderer {
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vbo_faces_box);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 
-
         TextureHelper.updateTexture();
-
-//        if (MyAR.needToChange) {
-//            TextureHelper.updateTexture();
-//            Log.i(TAG, "Change pic");
-//        } else {
-//            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureHelper.texture);
-//        }
-
-
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLE_FAN, 4, GLES20.GL_UNSIGNED_SHORT, 0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-    }
-
-    public int texId() {
-        return texture_id;
     }
 
 }

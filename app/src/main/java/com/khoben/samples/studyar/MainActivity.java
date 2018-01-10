@@ -10,10 +10,7 @@ package com.khoben.samples.studyar;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,8 +25,6 @@ import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.khoben.samples.studyar.AR.AR;
 
@@ -46,26 +41,23 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageView;
     private AR ar;
 
-    public static MainActivity activityReference;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        activityReference = this;
+
+        DBHandler.init();
 
         ar = new MyAR(this);
         ar.initAR();
+
         glView = ar.getGLView();
 
         imageView = (ImageView) findViewById(R.id.image_view);
         textView = (TextView) findViewById(R.id.textview1);
 
-        DBHandler.init();
-
-        //DBHandler.titleReference.setValue("studyAR");
 
         DBHandler.titleReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -175,14 +167,4 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-    public void setImageView(Bitmap bitmap) {
-        imageView.setImageBitmap(bitmap);
-    }
-
-    public void setTextView(String message) {
-        textView.setText(message);
-    }
-
-
 }

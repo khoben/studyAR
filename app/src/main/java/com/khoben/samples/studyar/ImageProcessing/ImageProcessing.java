@@ -11,7 +11,6 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.util.Log;
 
-import com.khoben.samples.studyar.AR.MyAR;
 import com.khoben.samples.studyar.Lesson;
 import com.khoben.samples.studyar.MainActivity;
 import com.vinaygaba.rubberstamp.RubberStamp;

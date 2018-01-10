@@ -5,17 +5,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
-import android.renderscript.Script;
 import android.util.Log;
 
-import com.khoben.samples.studyar.AR.MyAR;
 import com.khoben.samples.studyar.ImageProcessing.ImageProcessing;
-import com.khoben.samples.studyar.MainActivity;
+
 
 public class TextureHelper {
+    private static final String TAG = "TextureHelper";
+
     public static int texture;
     private static Bitmap curBitmap;
-    private static final String TAG = "TextureHelper";
 
     public static int loadTexture(final Context context, final int resourceId) {
         final int[] textureHandle = new int[1];
@@ -111,7 +110,6 @@ public class TextureHelper {
         Bitmap bitmap1;
         if (curBitmap == null) {
             bitmap1 = Bitmap.createBitmap(1, 1, Bitmap.Config.ALPHA_8);
-            Log.i(TAG,"Bitmap is NULL");
         } else
             bitmap1 = Bitmap.createBitmap(curBitmap);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture);
