@@ -21,7 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.khoben.samples.studyar.AR.Render.GLView;
 import com.khoben.samples.studyar.AR.Render.ImageRenderer;
 import com.khoben.samples.studyar.AR.Render.TextureHelper;
-import com.khoben.samples.studyar.DBHandler.DBHandler;
+import com.khoben.samples.studyar.DatabaseHelper.FirebaseHelper;
 import com.khoben.samples.studyar.ImageProcessing.ImageProcessing;
 import com.khoben.samples.studyar.Lesson;
 import com.khoben.samples.studyar.MainActivity;
@@ -311,7 +311,7 @@ public class MyAR implements AR {
                         current_target = imagetarget.name();
                         if (!current_target.equals(previus_target)) {
                             Log.i(TAG, String.format("current: %s, prev: %s", current_target, previus_target));
-                            DBHandler.timetableReference.child(current_target).addListenerForSingleValueEvent(new ValueEventListener() {
+                            FirebaseHelper.timetableReference.child(current_target).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
 

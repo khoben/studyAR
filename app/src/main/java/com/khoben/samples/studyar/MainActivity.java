@@ -20,8 +20,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -31,7 +29,7 @@ import com.khoben.samples.studyar.AR.AR;
 import java.util.HashMap;
 
 import com.khoben.samples.studyar.AR.MyAR;
-import com.khoben.samples.studyar.DBHandler.DBHandler;
+import com.khoben.samples.studyar.DatabaseHelper.FirebaseHelper;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -45,14 +43,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        DBHandler.init();
+        FirebaseHelper.init();
 
         ar = MyAR.getInstance(this);
         ar.initAR();
 
         glView = ar.getGLView();
 
-        DBHandler.titleReference.addValueEventListener(new ValueEventListener() {
+        FirebaseHelper.titleReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String value = dataSnapshot.getValue(String.class);
