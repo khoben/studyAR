@@ -26,7 +26,6 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.google.firebase:firebase-database:10.0.1'
-    compile 'com.vinaygaba:rubberstamp:1.0.0'
     testCompile 'junit:junit:4.12'
 }
 

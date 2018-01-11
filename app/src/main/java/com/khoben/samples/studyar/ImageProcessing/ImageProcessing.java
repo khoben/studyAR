@@ -13,9 +13,10 @@ import android.util.Log;
 
 import com.khoben.samples.studyar.Lesson;
 import com.khoben.samples.studyar.MainActivity;
-import com.vinaygaba.rubberstamp.RubberStamp;
-import com.vinaygaba.rubberstamp.RubberStampConfig;
-import com.vinaygaba.rubberstamp.RubberStampPosition;
+import com.khoben.samples.studyar.Rubberstamp.RubberStamp;
+import com.khoben.samples.studyar.Rubberstamp.RubberStampConfig;
+import com.khoben.samples.studyar.Rubberstamp.RubberStampPosition;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,12 +34,16 @@ public class ImageProcessing {
 
     private final String TAG = "ImageProcessing";
     private final int marginLeft = 30;
+    private final int marginTop = 30;
+
+    private final int scaleBitmapFactor = 4;
 
     public ImageProcessing() {
     }
 
     public ImageProcessing(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
+        rubberStamp = new RubberStamp(mainActivity);
     }
 
     public int getStringWidth(String s, String fontPath) {
@@ -66,7 +71,7 @@ public class ImageProcessing {
 
         Log.i(TAG, lesson.toString());
 
-        String[] strings = {
+        String[] lessonClassStringFields = {
                 String.format("Аудитория №%s", lesson.getAud()),
                 lesson.getSubject(),
                 lesson.getFio(),
@@ -74,8 +79,8 @@ public class ImageProcessing {
         };
 
         int maxWidth = 0;
-        int cur = 0;
-        for (String string : strings) {
+        int cur;
+        for (String string : lessonClassStringFields) {
             if (string.contains("Aудитория")) {
                 cur = getStringWidth(string, boldFontPath);
                 if (cur > maxWidth)
@@ -87,74 +92,29 @@ public class ImageProcessing {
             }
         }
 
-        String firstname = lesson.getFio().split(" ")[0];
+        String firstname = lessonClassStringFields[2].split(" ")[0];
 
         teacherProfileBitmap = getBitmapFromAsset(mainActivity, String.format("teachers/%s.jpg", firstname));
-        teacherProfileBitmap = Bitmap.createScaledBitmap(teacherProfileBitmap, (teacherProfileBitmap.getWidth() * 4), (teacherProfileBitmap.getHeight() * 4), true);
+        teacherProfileBitmap = Bitmap.createScaledBitmap(teacherProfileBitmap, (teacherProfileBitmap.getWidth() * scaleBitmapFactor),
+                (teacherProfileBitmap.getHeight() * scaleBitmapFactor), true);
 
-        mainBitmap = Bitmap.createBitmap(maxWidth + teacherProfileBitmap.getWidth() + marginLeft * 2, 600, Bitmap.Config.ARGB_8888);
+        int amountLines = lessonClassStringFields.length;
+
+        mainBitmap = Bitmap.createBitmap(maxWidth + teacherProfileBitmap.getWidth() + marginLeft * 4,
+                fontSize * amountLines + (amountLines + 2) * marginTop, Bitmap.Config.ARGB_8888);
 
         mainBitmap.eraseColor(Color.WHITE);
 
-        rubberStamp = new RubberStamp(mainActivity);
-
         config = new RubberStampConfig.RubberStampConfigBuilder()
                 .base(mainBitmap)
+                .rubberStamp(lessonClassStringFields)
                 .rubberStamp(teacherProfileBitmap)
-                .rubberStampPosition(RubberStampPosition.CUSTOM, 0, 0)
-                .margin(30, 30)
-                .build();
-
-        mainBitmap = rubberStamp.addStamp(config);
-
-        config = new RubberStampConfig.RubberStampConfigBuilder()
-                .base(mainBitmap)
-                .rubberStamp(strings[0])
-                .rubberStampPosition(RubberStampPosition.CUSTOM, teacherProfileBitmap.getWidth(), fontSize)
-                .margin(30, 30)
-                .textColor(Color.BLACK)
-                .textSize(fontSize)
-                .textFont(boldFontPath)
-                .build();
-
-        mainBitmap = rubberStamp.addStamp(config);
-
-
-        config = new RubberStampConfig.RubberStampConfigBuilder()
-                .base(mainBitmap)
-                .rubberStamp(strings[1])
-                .rubberStampPosition(RubberStampPosition.CUSTOM, teacherProfileBitmap.getWidth(), 2 * fontSize)
-                .margin(30, 30)
+                .rubberStampPosition(RubberStampPosition.CUSTOM, teacherProfileBitmap.getWidth() + marginLeft, fontSize)
+                .margin(marginLeft, marginTop)
                 .textColor(Color.BLACK)
                 .textSize(fontSize)
                 .textFont(regularFontPath)
                 .build();
-
-        mainBitmap = rubberStamp.addStamp(config);
-
-        config = new RubberStampConfig.RubberStampConfigBuilder()
-                .base(mainBitmap)
-                .rubberStamp(strings[2])
-                .rubberStampPosition(RubberStampPosition.CUSTOM, teacherProfileBitmap.getWidth(), 3 * fontSize)
-                .margin(30, 30)
-                .textColor(Color.BLACK)
-                .textSize(fontSize)
-                .textFont(regularFontPath)
-                .build();
-
-
-        mainBitmap = rubberStamp.addStamp(config);
-
-        config = new RubberStampConfig.RubberStampConfigBuilder()
-                .base(mainBitmap)
-                .rubberStamp(strings[3])
-                .rubberStampPosition(RubberStampPosition.CUSTOM, teacherProfileBitmap.getWidth(), 4 * fontSize)
-                .margin(30, 30)
-                .textColor(Color.BLACK)
-                .textSize(fontSize)
-                .textFont(regularFontPath)
-                .build();
-
 
         mainBitmap = rubberStamp.addStamp(config);
 
