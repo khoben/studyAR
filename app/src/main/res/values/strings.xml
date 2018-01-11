@@ -1,7 +1,3 @@
 <resources>
     <string name="app_name">studyAR</string>
-
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Use torch</string>
-    <string name="permission_string">Нет доступа. Проверьте настройки разрешений приложения.</string>
 </resources>

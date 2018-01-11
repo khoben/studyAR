@@ -37,8 +37,6 @@ import com.khoben.samples.studyar.DBHandler.DBHandler;
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
     private GLSurfaceView glView;
-    private TextView textView;
-    private ImageView imageView;
     private AR ar;
 
     @Override
@@ -47,17 +45,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-
         DBHandler.init();
 
-        ar = new MyAR(this);
+        ar = MyAR.getInstance(this);
         ar.initAR();
 
         glView = ar.getGLView();
-
-        imageView = (ImageView) findViewById(R.id.image_view);
-        textView = (TextView) findViewById(R.id.textview1);
-
 
         DBHandler.titleReference.addValueEventListener(new ValueEventListener() {
             @Override

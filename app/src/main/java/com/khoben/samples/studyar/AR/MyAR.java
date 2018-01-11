@@ -9,7 +9,6 @@
 package com.khoben.samples.studyar.AR;
 
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
 
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
@@ -61,7 +60,7 @@ public class MyAR implements AR {
     private boolean viewport_changed;
     private int rotation = 0;
 
-    private final Vec2I cameraResolution = new Vec2I(1920,1080);
+    private final Vec2I cameraResolution = new Vec2I(1280, 720);
     private Vec2I view_size = new Vec2I(0, 0);
     private Vec4I viewport = new Vec4I(0, 0, 1280, 720);
 
@@ -72,6 +71,11 @@ public class MyAR implements AR {
 
     private String PATH_TO_MARKERS = "json/%s_sign_aud.json";
     private final String typeSign = "shapes"; // number | shapes | full
+    private final String[] allTypes = {
+            "shapes",
+            "number",
+            "full"
+    };
 
     private Bitmap bitmap;
     private ImageProcessing imageProcessing;
@@ -80,9 +84,24 @@ public class MyAR implements AR {
     private GLSurfaceView glView;
     private MainActivity mainActivity;
 
-    public MyAR(MainActivity mainActivity) {
+    private static volatile MyAR instance;
+
+    public static MyAR getInstance(MainActivity mainActivity) {
+        MyAR localInstance = instance;
+        if (localInstance == null) {
+            synchronized (MyAR.class) {
+                localInstance = instance;
+                if (localInstance == null) {
+                    instance = localInstance = new MyAR(mainActivity);
+                }
+            }
+        }
+        return localInstance;
+    }
+
+    private MyAR(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        glView = new GLView(mainActivity,this);
+        glView = new GLView(mainActivity, this);
         trackers = new ArrayList<>();
         imageProcessing = new ImageProcessing(mainActivity);
         current_target = null;
@@ -167,8 +186,9 @@ public class MyAR implements AR {
         tracker.attachStreamer(streamer);
 
 
-
-        loadAllFromJsonFile(tracker, String.format(PATH_TO_MARKERS,typeSign));
+        for (String type : allTypes) {
+            loadAllFromJsonFile(tracker, String.format(PATH_TO_MARKERS, type));
+        }
 
         trackers.add(tracker);
 
