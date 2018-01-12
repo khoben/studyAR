@@ -285,7 +285,7 @@ public class MyAR implements AR {
                                     curLesson = dataSnapshot.getValue(Lesson.class);
                                     new Thread(() -> {
                                         //bitmap = imageProcessing.generateBitmap(curLesson);
-                                        bitmap = pairObjectPool.checkOut(curLesson).second;
+                                       bitmap = pairObjectPool.checkOut(curLesson).second;
                                         TextureHelper.updateBitmap(bitmap);
                                     }).start();
                                     Log.i(TAG, curLesson.toString());

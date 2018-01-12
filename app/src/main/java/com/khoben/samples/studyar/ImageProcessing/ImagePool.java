@@ -34,8 +34,8 @@ public class ImagePool extends ObjectPool<Pair<Lesson, Bitmap>> {
     public boolean validate(Lesson l) {
         Enumeration e = unlocked.keys();
         while (e.hasMoreElements()){
-            Lesson l1 = (Lesson) e.nextElement();
-            if (l1.getAud().equals(l.getAud())){
+            Pair<Lesson, Bitmap> l1 = (Pair<Lesson, Bitmap>) e.nextElement();
+            if (l1.first.getAud().equals(l.getAud())){
                 return true;
             }
         }
