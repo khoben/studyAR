@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
+import android.util.Pair;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,9 +23,13 @@ import com.khoben.samples.studyar.AR.Render.GLView;
 import com.khoben.samples.studyar.AR.Render.ImageRenderer;
 import com.khoben.samples.studyar.AR.Render.TextureHelper;
 import com.khoben.samples.studyar.DatabaseHelper.FirebaseHelper;
+import com.khoben.samples.studyar.ImageProcessing.ImagePool;
 import com.khoben.samples.studyar.ImageProcessing.ImageProcessing;
+import com.khoben.samples.studyar.ImageProcessing.ObjectPool;
 import com.khoben.samples.studyar.Lesson;
 import com.khoben.samples.studyar.MainActivity;
+import com.khoben.samples.studyar.MyIterator.MyIterator;
+import com.khoben.samples.studyar.MyIterator.TargetContainer;
 
 import cn.easyar.CameraCalibration;
 import cn.easyar.CameraDevice;
@@ -33,7 +38,6 @@ import cn.easyar.CameraDeviceType;
 import cn.easyar.CameraFrameStreamer;
 import cn.easyar.Engine;
 import cn.easyar.Frame;
-import cn.easyar.FunctorOfVoidFromPointerOfTargetAndBool;
 import cn.easyar.ImageTarget;
 import cn.easyar.ImageTracker;
 import cn.easyar.Renderer;
@@ -55,22 +59,21 @@ public class MyAR implements AR {
     private CameraDevice camera;
     private CameraFrameStreamer streamer;
     private ArrayList<ImageTracker> trackers;
-    private Renderer videobg_renderer;
-    private ImageRenderer box_renderer;
-    private boolean viewport_changed;
+    private Renderer videobgRenderer;
+    private ImageRenderer imageRenderer;
+    private boolean viewportChanged;
     private int rotation = 0;
 
     private final Vec2I cameraResolution = new Vec2I(1280, 720);
-    private Vec2I view_size = new Vec2I(0, 0);
+    private Vec2I viewSize = new Vec2I(0, 0);
     private Vec4I viewport = new Vec4I(0, 0, 1280, 720);
 
-    private String current_target;
-    private String previus_target;
+    private String currentTarget;
+    private String previusTarget;
 
     private Lesson curLesson;
 
     private String PATH_TO_MARKERS = "json/%s_sign_aud.json";
-    private final String typeSign = "shapes"; // number | shapes | full
     private final String[] allTypes = {
             "shapes",
             "number",
@@ -83,6 +86,8 @@ public class MyAR implements AR {
 
     private GLSurfaceView glView;
     private MainActivity mainActivity;
+
+    private ObjectPool<Pair<Lesson,Bitmap>> pairObjectPool;
 
     private static volatile MyAR instance;
 
@@ -104,53 +109,11 @@ public class MyAR implements AR {
         glView = new GLView(mainActivity, this);
         trackers = new ArrayList<>();
         imageProcessing = new ImageProcessing(mainActivity);
-        current_target = null;
-        previus_target = null;
-        viewport_changed = false;
+        currentTarget = null;
+        previusTarget = null;
+        viewportChanged = false;
         isFlashlightEnabled = false;
-
-    }
-
-    private void loadFromImage(ImageTracker tracker, String path) {
-        ImageTarget target = new ImageTarget();
-        String jstr = "{\n"
-                + "  \"images\" :\n"
-                + "  [\n"
-                + "    {\n"
-                + "      \"image\" : \"" + path + "\",\n"
-                + "      \"name\" : \"" + path.substring(0, path.indexOf(".")) + "\"\n"
-                + "    }\n"
-                + "  ]\n"
-                + "}";
-        target.setup(jstr, StorageType.Assets | StorageType.Json, "");
-        tracker.loadTarget(target, new FunctorOfVoidFromPointerOfTargetAndBool() {
-            @Override
-            public void invoke(Target target, boolean status) {
-                Log.i(TAG, String.format("load target (%b): %s (%d)", status, target.name(), target.runtimeID()));
-            }
-        });
-    }
-
-    private void loadFromJsonFile(ImageTracker tracker, String path, String targetname) {
-        ImageTarget target = new ImageTarget();
-        target.setup(path, StorageType.Assets, targetname);
-        tracker.loadTarget(target, new FunctorOfVoidFromPointerOfTargetAndBool() {
-            @Override
-            public void invoke(Target target, boolean status) {
-                Log.i(TAG, String.format("load target (%b): %s (%d)", status, target.name(), target.runtimeID()));
-            }
-        });
-    }
-
-    private void loadAllFromJsonFile(ImageTracker tracker, String path) {
-        for (ImageTarget target : ImageTarget.setupAll(path, StorageType.Assets)) {
-            tracker.loadTarget(target, new FunctorOfVoidFromPointerOfTargetAndBool() {
-                @Override
-                public void invoke(Target target, boolean status) {
-                    Log.i(TAG, String.format("load target (%b): %s (%d)", status, target.name(), target.runtimeID()));
-                }
-            });
-        }
+        pairObjectPool = new ImagePool(mainActivity);
     }
 
     @Override
@@ -182,12 +145,13 @@ public class MyAR implements AR {
         if (!status) {
             return status;
         }
+
         ImageTracker tracker = new ImageTracker();
         tracker.attachStreamer(streamer);
 
 
         for (String type : allTypes) {
-            loadAllFromJsonFile(tracker, String.format(PATH_TO_MARKERS, type));
+            ARUtils. loadAllFromJsonFile(tracker, String.format(PATH_TO_MARKERS, type));
         }
 
         trackers.add(tracker);
@@ -200,10 +164,10 @@ public class MyAR implements AR {
             tracker.dispose();
         }
         trackers.clear();
-        box_renderer = null;
-        if (videobg_renderer != null) {
-            videobg_renderer.dispose();
-            videobg_renderer = null;
+        imageRenderer = null;
+        if (videobgRenderer != null) {
+            videobgRenderer.dispose();
+            videobgRenderer = null;
         }
         if (streamer != null) {
             streamer.dispose();
@@ -237,17 +201,17 @@ public class MyAR implements AR {
     }
 
     public void initGL() {
-        if (videobg_renderer != null) {
-            videobg_renderer.dispose();
+        if (videobgRenderer != null) {
+            videobgRenderer.dispose();
         }
-        videobg_renderer = new Renderer();
-        box_renderer = new ImageRenderer();
-        box_renderer.init();
+        videobgRenderer = new Renderer();
+        imageRenderer = new ImageRenderer();
+        imageRenderer.init();
     }
 
     public void resizeGL(int width, int height) {
-        view_size = new Vec2I(width, height);
-        viewport_changed = true;
+        viewSize = new Vec2I(width, height);
+        viewportChanged = true;
     }
 
     private void updateViewport() {
@@ -255,9 +219,9 @@ public class MyAR implements AR {
         int rotation = calib != null ? calib.rotation() : 0;
         if (rotation != this.rotation) {
             this.rotation = rotation;
-            viewport_changed = true;
+            viewportChanged = true;
         }
-        if (viewport_changed) {
+        if (viewportChanged) {
             Vec2I size = new Vec2I(1, 1);
             if ((camera != null) && camera.isOpened()) {
                 size = camera.size();
@@ -265,12 +229,12 @@ public class MyAR implements AR {
             if (rotation == 90 || rotation == 270) {
                 size = new Vec2I(size.data[1], size.data[0]);
             }
-            float scaleRatio = Math.max((float) view_size.data[0] / (float) size.data[0], (float) view_size.data[1] / (float) size.data[1]);
+            float scaleRatio = Math.max((float) viewSize.data[0] / (float) size.data[0], (float) viewSize.data[1] / (float) size.data[1]);
             Vec2I viewport_size = new Vec2I(Math.round(size.data[0] * scaleRatio), Math.round(size.data[1] * scaleRatio));
-            viewport = new Vec4I((view_size.data[0] - viewport_size.data[0]) / 2, (view_size.data[1] - viewport_size.data[1]) / 2, viewport_size.data[0], viewport_size.data[1]);
+            viewport = new Vec4I((viewSize.data[0] - viewport_size.data[0]) / 2, (viewSize.data[1] - viewport_size.data[1]) / 2, viewport_size.data[0], viewport_size.data[1]);
 
             if ((camera != null) && camera.isOpened())
-                viewport_changed = false;
+                viewportChanged = false;
         }
     }
 
@@ -278,10 +242,10 @@ public class MyAR implements AR {
         GLES20.glClearColor(1.f, 1.f, 1.f, 1.f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        if (videobg_renderer != null) {
-            Vec4I default_viewport = new Vec4I(0, 0, view_size.data[0], view_size.data[1]);
+        if (videobgRenderer != null) {
+            Vec4I default_viewport = new Vec4I(0, 0, viewSize.data[0], viewSize.data[1]);
             GLES20.glViewport(default_viewport.data[0], default_viewport.data[1], default_viewport.data[2], default_viewport.data[3]);
-            if (videobg_renderer.renderErrorMessage(default_viewport)) {
+            if (videobgRenderer.renderErrorMessage(default_viewport)) {
                 return;
             }
         }
@@ -294,47 +258,49 @@ public class MyAR implements AR {
             updateViewport();
             GLES20.glViewport(viewport.data[0], viewport.data[1], viewport.data[2], viewport.data[3]);
 
-            if (videobg_renderer != null) {
-                videobg_renderer.render(frame, viewport);
+            if (videobgRenderer != null) {
+                videobgRenderer.render(frame, viewport);
             }
 
-            for (TargetInstance targetInstance : frame.targetInstances()) {
+            TargetContainer targetContainer = new TargetContainer(frame.targetInstances());
+            MyIterator targetIterator = targetContainer.getIterator();
+
+            while (targetIterator.hasNext()) {
+                TargetInstance targetInstance = (TargetInstance) targetIterator.next();
                 int status = targetInstance.status();
                 if (status == TargetStatus.Tracked) {
-                    TargetInstance curtarget = targetInstance;
                     Target target = targetInstance.target();
                     ImageTarget imagetarget = target instanceof ImageTarget ? (ImageTarget) (target) : null;
                     if (imagetarget == null) {
                         continue;
                     }
-                    if (box_renderer != null) {
-                        current_target = imagetarget.name();
-                        if (!current_target.equals(previus_target)) {
-                            Log.i(TAG, String.format("current: %s, prev: %s", current_target, previus_target));
-                            FirebaseHelper.timetableReference.child(current_target).addListenerForSingleValueEvent(new ValueEventListener() {
+                    if (imageRenderer != null) {
+                        currentTarget = imagetarget.name();
+                        if (!currentTarget.equals(previusTarget)) {
+                            Log.i(TAG, String.format("current: %s, prev: %s", currentTarget, previusTarget));
+                            FirebaseHelper.timetableReference.child(currentTarget).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
 
                                     curLesson = dataSnapshot.getValue(Lesson.class);
-                                    new Thread(new Runnable() {
-                                        public void run() {
-                                            bitmap = imageProcessing.generateBitmap(curLesson);
-                                            TextureHelper.updateBitmap(bitmap);
-                                        }
+                                    new Thread(() -> {
+                                        //bitmap = imageProcessing.generateBitmap(curLesson);
+                                        bitmap = pairObjectPool.checkOut(curLesson).second;
+                                        TextureHelper.updateBitmap(bitmap);
                                     }).start();
                                     Log.i(TAG, curLesson.toString());
                                 }
 
                                 @Override
                                 public void onCancelled(DatabaseError databaseError) {
-                                    Log.e(TAG, databaseError.getMessage().toString());
+                                    Log.e(TAG, databaseError.getMessage());
                                 }
                             });
                         }
-                        box_renderer.render(camera.projectionGL(0.2f, 500.f), curtarget.poseGL(), imagetarget.size());
+                        imageRenderer.render(camera.projectionGL(0.2f, 500.f), targetInstance.poseGL(), imagetarget.size());
                     }
                 }
-                previus_target = current_target;
+                previusTarget = currentTarget;
             }
 
         } finally {

@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -54,7 +55,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String value = dataSnapshot.getValue(String.class);
-                getSupportActionBar().setTitle(value);
+                try {
+                    getSupportActionBar().setTitle(value);
+                }
+                catch (NullPointerException e){
+                    Log.e(TAG,e.getMessage());
+                }
             }
 
             @Override
@@ -122,15 +128,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (ar != null) {
-            ar.onResume();
+        if (glView != null) {
+            glView.onResume();
         }
     }
 
     @Override
     protected void onPause() {
-        if (ar != null) {
-            ar.onPause();
+        if (glView != null) {
+            glView.onPause();
         }
         super.onPause();
     }

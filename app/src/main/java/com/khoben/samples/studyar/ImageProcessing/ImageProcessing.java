@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ImageProcessing {
+    private static final String TAG = "ImageProcessing";
+
     private Bitmap mainBitmap;
     private Bitmap teacherProfileBitmap;
     private MainActivity mainActivity;
@@ -32,7 +34,6 @@ public class ImageProcessing {
     private final static String regularFontPath = "fonts/Roboto-Regular.ttf";
     private final int fontSize = 100;
 
-    private final String TAG = "ImageProcessing";
     private final int marginLeft = 30;
     private final int marginTop = 30;
 
@@ -61,13 +62,10 @@ public class ImageProcessing {
 
     public Bitmap generateBitmap(Lesson lesson) {
 
-        //TODO: add id
-
         if (lesson == null) {
-            Log.i(TAG, "Lesson is NULL");
+            Log.w(TAG, "Lesson is NULL");
             return null;
         }
-
 
         Log.i(TAG, lesson.toString());
 
@@ -95,6 +93,10 @@ public class ImageProcessing {
         String firstname = lessonClassStringFields[2].split(" ")[0];
 
         teacherProfileBitmap = getBitmapFromAsset(mainActivity, String.format("teachers/%s.jpg", firstname));
+
+        if (teacherProfileBitmap == null)
+            return null;
+
         teacherProfileBitmap = Bitmap.createScaledBitmap(teacherProfileBitmap, (teacherProfileBitmap.getWidth() * scaleBitmapFactor),
                 (teacherProfileBitmap.getHeight() * scaleBitmapFactor), true);
 
@@ -131,7 +133,7 @@ public class ImageProcessing {
             istr = assetManager.open(filePath);
             bitmap = BitmapFactory.decodeStream(istr);
         } catch (IOException e) {
-            // handle exception
+            Log.e(TAG, "Не удалось загрузить изображение");
         }
 
         return bitmap;

@@ -18,18 +18,19 @@ import cn.easyar.Vec2F;
 import cn.easyar.Matrix44F;
 
 public class ImageRenderer {
-    private int program_box;
-    private int pos_coord_box;
-    private int pos_tex_box;
-    private int pos_trans_box;
-    private int pos_proj_box;
-    private int vbo_coord_box;
-    private int vbo_tex_box;
-    private int vbo_faces_box;
+    private int shaderProgram;
+    private int posCoord;
+    private int posTex;
+    private int posTrans;
+    private int posProj;
+
+    private int vboCoord;
+    private int vboTex;
+    private int vboFaces;
 
     private final String TAG = "ImageRenderer";
 
-    private final String box_vert = "uniform mat4 trans;\n"
+    private final String vertexShaderProgram = "uniform mat4 trans;\n"
             + "uniform mat4 proj;\n"
             + "attribute vec4 coord;\n"
             + "attribute vec2 texcoord;\n"
@@ -42,7 +43,7 @@ public class ImageRenderer {
             + "}\n"
             + "\n";
 
-    private final String box_frag = "#ifdef GL_ES\n"
+    private final String fragmentShaderProgram = "#ifdef GL_ES\n"
             + "precision highp float;\n"
             + "#endif\n"
             + "varying vec2 vtexcoord;\n"
@@ -131,41 +132,41 @@ public class ImageRenderer {
     }
 
     public void init() {
-        program_box = GLES20.glCreateProgram();
+        shaderProgram = GLES20.glCreateProgram();
         int vertShader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER);
-        GLES20.glShaderSource(vertShader, box_vert);
+        GLES20.glShaderSource(vertShader, vertexShaderProgram);
         GLES20.glCompileShader(vertShader);
         int fragShader = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER);
-        GLES20.glShaderSource(fragShader, box_frag);
+        GLES20.glShaderSource(fragShader, fragmentShaderProgram);
         GLES20.glCompileShader(fragShader);
-        GLES20.glAttachShader(program_box, vertShader);
-        GLES20.glAttachShader(program_box, fragShader);
-        GLES20.glLinkProgram(program_box);
-        GLES20.glUseProgram(program_box);
-        pos_coord_box = GLES20.glGetAttribLocation(program_box, "coord");
-        pos_tex_box = GLES20.glGetAttribLocation(program_box, "texcoord");
-        pos_trans_box = GLES20.glGetUniformLocation(program_box, "trans");
-        pos_proj_box = GLES20.glGetUniformLocation(program_box, "proj");
+        GLES20.glAttachShader(shaderProgram, vertShader);
+        GLES20.glAttachShader(shaderProgram, fragShader);
+        GLES20.glLinkProgram(shaderProgram);
+        GLES20.glUseProgram(shaderProgram);
+        posCoord = GLES20.glGetAttribLocation(shaderProgram, "coord");
+        posTex = GLES20.glGetAttribLocation(shaderProgram, "texcoord");
+        posTrans = GLES20.glGetUniformLocation(shaderProgram, "trans");
+        posProj = GLES20.glGetUniformLocation(shaderProgram, "proj");
 
-        vbo_coord_box = generateOneBuffer();
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
+        vboCoord = generateOneBuffer();
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboCoord);
         float cube_vertices[][] = {{1.0f / 2, 1.0f / 2, 0.f}, {1.0f / 2, -1.0f / 2, 0.f}, {-1.0f / 2, -1.0f / 2, 0.f}, {-1.0f / 2, 1.0f / 2, 0.f}};
         FloatBuffer cube_vertices_buffer = FloatBuffer.wrap(flatten(cube_vertices));
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertices_buffer.limit() * 4, cube_vertices_buffer, GLES20.GL_DYNAMIC_DRAW);
 
-        vbo_tex_box = generateOneBuffer();
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_tex_box);
+        vboTex = generateOneBuffer();
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboTex);
         int cube_vertex_colors[][] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}};
         ByteBuffer cube_vertex_colors_buffer = ByteBuffer.wrap(byteArrayFromIntArray(flatten(cube_vertex_colors)));
         GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, cube_vertex_colors_buffer.limit(), cube_vertex_colors_buffer, GLES20.GL_STATIC_DRAW);
 
-        vbo_faces_box = generateOneBuffer();
-        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vbo_faces_box);
+        vboFaces = generateOneBuffer();
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vboFaces);
         short cube_faces[] = {3, 2, 1, 0};
         ShortBuffer cube_faces_buffer = ShortBuffer.wrap(cube_faces);
         GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, cube_faces_buffer.limit() * 2, cube_faces_buffer, GLES20.GL_STATIC_DRAW);
 
-        GLES20.glUniform1i(GLES20.glGetUniformLocation(program_box, "texture"), 0);
+        GLES20.glUniform1i(GLES20.glGetUniformLocation(shaderProgram, "texture"), 0);
         TextureHelper.texture = generateOneTexture();
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, TextureHelper.texture);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
@@ -178,7 +179,7 @@ public class ImageRenderer {
         float size0 = size.data[0];
         float size1 = size.data[1];
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboCoord);
         float height = size0 / 1000;
         float cube_vertices[][] = {{size0 / 2, size1 / 2, 0}, {size0 / 2, -size1 / 2, 0}, {-size0 / 2, -size1 / 2, 0}, {-size0 / 2, size1 / 2, 0}};
         FloatBuffer cube_vertices_buffer = FloatBuffer.wrap(flatten(cube_vertices));
@@ -187,18 +188,18 @@ public class ImageRenderer {
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-        GLES20.glUseProgram(program_box);
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_coord_box);
-        GLES20.glEnableVertexAttribArray(pos_coord_box);
-        GLES20.glVertexAttribPointer(pos_coord_box, 3, GLES20.GL_FLOAT, false, 0, 0);
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vbo_tex_box);
-        GLES20.glEnableVertexAttribArray(pos_tex_box);
-        GLES20.glVertexAttribPointer(pos_tex_box, 2, GLES20.GL_UNSIGNED_BYTE, false, 0, 0);
-        GLES20.glUniformMatrix4fv(pos_trans_box, 1, false, cameraview.data, 0);
-        GLES20.glUniformMatrix4fv(pos_proj_box, 1, false, projectionMatrix.data, 0);
-        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vbo_faces_box);
+        GLES20.glUseProgram(shaderProgram);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboCoord);
+        GLES20.glEnableVertexAttribArray(posCoord);
+        GLES20.glVertexAttribPointer(posCoord, 3, GLES20.GL_FLOAT, false, 0, 0);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboTex);
+        GLES20.glEnableVertexAttribArray(posTex);
+        GLES20.glVertexAttribPointer(posTex, 2, GLES20.GL_UNSIGNED_BYTE, false, 0, 0);
+        GLES20.glUniformMatrix4fv(posTrans, 1, false, cameraview.data, 0);
+        GLES20.glUniformMatrix4fv(posProj, 1, false, projectionMatrix.data, 0);
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vboFaces);
 
-        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vbo_faces_box);
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vboFaces);
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 
         TextureHelper.updateTexture();
