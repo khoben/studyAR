@@ -15,7 +15,10 @@ import com.khoben.samples.studyar.MainActivity;
 
 import java.util.Enumeration;
 
+
 public class ImagePool extends ObjectPool<Pair<Lesson, Bitmap>> {
+
+    public static final String TAG = "ImagePool";
 
     private ImageProcessing imageProcessing;
 
@@ -40,5 +43,16 @@ public class ImagePool extends ObjectPool<Pair<Lesson, Bitmap>> {
             }
         }
         return false;
+    }
+
+    public Pair<Lesson, Bitmap> validate(String aud){
+        Enumeration e = unlocked.keys();
+        while (e.hasMoreElements()){
+            Pair<Lesson, Bitmap> l1 = (Pair<Lesson, Bitmap>) e.nextElement();
+            if (l1.first.getAud().equals(aud)){
+                return l1;
+            }
+        }
+        return null;
     }
 }

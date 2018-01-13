@@ -1,5 +1,7 @@
 package com.khoben.samples.studyar.ImageProcessing;
 
+import android.util.Log;
+
 import com.khoben.samples.studyar.Lesson;
 
 import java.util.Enumeration;
@@ -32,11 +34,8 @@ public abstract class ObjectPool<T> {
                     t = null;
                 } else {
                     if (validate(l)) {
-//                        unlocked.remove(t);
-//                        locked.put(t, now);
                         return (t);
                     } else {
-                        unlocked.remove(t);
                         t = null;
                     }
                 }

@@ -87,7 +87,7 @@ public class MyAR implements AR {
     private GLSurfaceView glView;
     private MainActivity mainActivity;
 
-    private ObjectPool<Pair<Lesson,Bitmap>> pairObjectPool;
+    private ImagePool pairObjectPool;
 
     private static volatile MyAR instance;
 
@@ -278,24 +278,32 @@ public class MyAR implements AR {
                         currentTarget = imagetarget.name();
                         if (!currentTarget.equals(previusTarget)) {
                             Log.i(TAG, String.format("current: %s, prev: %s", currentTarget, previusTarget));
-                            FirebaseHelper.timetableReference.child(currentTarget).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                    curLesson = dataSnapshot.getValue(Lesson.class);
-                                    new Thread(() -> {
-                                        //bitmap = imageProcessing.generateBitmap(curLesson);
-                                       bitmap = pairObjectPool.checkOut(curLesson).second;
-                                        TextureHelper.updateBitmap(bitmap);
-                                    }).start();
-                                    Log.i(TAG, curLesson.toString());
-                                }
+                            Pair<Lesson, Bitmap> pair = pairObjectPool.validate(currentTarget);
+                            if (pair == null) {
+                                FirebaseHelper.timetableReference.child(currentTarget).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    Log.e(TAG, databaseError.getMessage());
-                                }
-                            });
+                                        curLesson = dataSnapshot.getValue(Lesson.class);
+                                        new Thread(() -> {
+                                            //bitmap = imageProcessing.generateBitmap(curLesson);
+                                            bitmap = pairObjectPool.checkOut(curLesson).second;
+                                            TextureHelper.updateBitmap(bitmap);
+                                        }).start();
+                                        Log.i(TAG, curLesson.toString());
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        Log.e(TAG, databaseError.getMessage());
+                                    }
+                                });
+                            }
+                            else{
+                                bitmap = pair.second;
+                                TextureHelper.updateBitmap(bitmap);
+                            }
                         }
                         imageRenderer.render(camera.projectionGL(0.2f, 500.f), targetInstance.poseGL(), imagetarget.size());
                     }

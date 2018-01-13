@@ -62,13 +62,8 @@ public class RubberStamp {
         canvas.drawBitmap(baseBitmap, 0, 0, null);
 
         // Either one of the methods(text/bitmap) can be used to add a rubberstamp
-        String[] strings = config.getRubberStampString();
-        if (strings != null) {
-            for (String str : strings) {
-                if (!TextUtils.isEmpty(str)) {
-                    addTextToBitmap(config, canvas, baseBitmapWidth, baseBitmapHeight);
-                }
-            }
+        if (config.getRubberStampString() != null) {
+            addTextToBitmap(config, canvas, baseBitmapWidth, baseBitmapHeight);
         }
         if (config.getRubberStampBitmap() != null) {
             addBitmapToBitmap(config.getRubberStampBitmap(), config, canvas,
