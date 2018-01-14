@@ -18,11 +18,11 @@ public abstract class ObjectPool<T> {
         unlocked = new Hashtable<>();
     }
 
-    protected abstract T create(Lesson l);
+    protected abstract T create(T l);
 
-    public abstract boolean validate(Lesson l);
+    public abstract boolean validate(T l);
 
-    public synchronized T checkOut(Lesson l) {
+    public synchronized T checkOut(T l) {
         long now = System.currentTimeMillis();
         T t;
         if (unlocked.size() > 0) {
@@ -34,7 +34,7 @@ public abstract class ObjectPool<T> {
                     t = null;
                 } else {
                     if (validate(l)) {
-                        return (t);
+                        return t;
                     } else {
                         t = null;
                     }
@@ -44,6 +44,6 @@ public abstract class ObjectPool<T> {
 
         t = create(l);
         unlocked.put(t, now);
-        return (t);
+        return t;
     }
 }

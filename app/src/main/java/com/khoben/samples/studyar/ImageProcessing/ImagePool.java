@@ -1,22 +1,12 @@
 package com.khoben.samples.studyar.ImageProcessing;
 
-
-import android.graphics.Bitmap;
-import android.util.Log;
-import android.util.Pair;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
-import com.khoben.samples.studyar.AR.Render.TextureHelper;
-import com.khoben.samples.studyar.DatabaseHelper.FirebaseHelper;
 import com.khoben.samples.studyar.Lesson;
 import com.khoben.samples.studyar.MainActivity;
 
 import java.util.Enumeration;
 
 
-public class ImagePool extends ObjectPool<Pair<Lesson, Bitmap>> {
+public class ImagePool extends ObjectPool<Lesson> {
 
     public static final String TAG = "ImagePool";
 
@@ -29,27 +19,28 @@ public class ImagePool extends ObjectPool<Pair<Lesson, Bitmap>> {
 
 
     @Override
-    protected Pair<Lesson, Bitmap> create(Lesson l) {
-        return new Pair<>(l,imageProcessing.generateBitmap(l));
+    protected Lesson create(Lesson l) {
+        l.setBitmap(imageProcessing.generateBitmap(l));
+        return l;
     }
 
     @Override
     public boolean validate(Lesson l) {
         Enumeration e = unlocked.keys();
         while (e.hasMoreElements()){
-            Pair<Lesson, Bitmap> l1 = (Pair<Lesson, Bitmap>) e.nextElement();
-            if (l1.first.getAud().equals(l.getAud())){
+            Lesson l1 = (Lesson) e.nextElement();
+            if (l1.getAud().equals(l.getAud())){
                 return true;
             }
         }
         return false;
     }
 
-    public Pair<Lesson, Bitmap> validate(String aud){
+    public Lesson findExistingLesson(String aud){
         Enumeration e = unlocked.keys();
         while (e.hasMoreElements()){
-            Pair<Lesson, Bitmap> l1 = (Pair<Lesson, Bitmap>) e.nextElement();
-            if (l1.first.getAud().equals(aud)){
+            Lesson l1 = (Lesson) e.nextElement();
+            if (l1.getAud().equals(aud)){
                 return l1;
             }
         }

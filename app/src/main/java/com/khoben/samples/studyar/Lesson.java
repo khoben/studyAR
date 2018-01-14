@@ -1,12 +1,20 @@
 package com.khoben.samples.studyar;
 
 
+import android.graphics.Bitmap;
+
+import com.google.firebase.database.Exclude;
+
 public class Lesson {
 
     private String aud;
     private String subject;
     private String fio;
     private String degree;
+
+
+    @Exclude
+    private Bitmap bitmap;
 
     public Lesson() {
     }
@@ -58,5 +66,13 @@ public class Lesson {
 
     public void setDegree(String degree) {
         this.degree = degree;
+    }
+
+    public Bitmap getBitmap() {
+        return bitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
     }
 }

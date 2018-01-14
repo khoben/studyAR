@@ -25,7 +25,6 @@ import com.khoben.samples.studyar.AR.Render.TextureHelper;
 import com.khoben.samples.studyar.DatabaseHelper.FirebaseHelper;
 import com.khoben.samples.studyar.ImageProcessing.ImagePool;
 import com.khoben.samples.studyar.ImageProcessing.ImageProcessing;
-import com.khoben.samples.studyar.ImageProcessing.ObjectPool;
 import com.khoben.samples.studyar.Lesson;
 import com.khoben.samples.studyar.MainActivity;
 import com.khoben.samples.studyar.MyIterator.MyIterator;
@@ -41,7 +40,6 @@ import cn.easyar.Frame;
 import cn.easyar.ImageTarget;
 import cn.easyar.ImageTracker;
 import cn.easyar.Renderer;
-import cn.easyar.StorageType;
 import cn.easyar.Target;
 import cn.easyar.TargetInstance;
 import cn.easyar.TargetStatus;
@@ -75,9 +73,7 @@ public class MyAR implements AR {
 
     private String PATH_TO_MARKERS = "json/%s_sign_aud.json";
     private final String[] allTypes = {
-            "shapes",
-            "number",
-            "full"
+            "shapes"
     };
 
     private Bitmap bitmap;
@@ -183,6 +179,7 @@ public class MyAR implements AR {
         boolean status = true;
         status &= (camera != null) && camera.start();
         status &= (streamer != null) && streamer.start();
+        assert camera != null;
         camera.setFocusMode(CameraDeviceFocusMode.Continousauto);
         for (ImageTracker tracker : trackers) {
             status &= tracker.start();
@@ -279,8 +276,8 @@ public class MyAR implements AR {
                         if (!currentTarget.equals(previusTarget)) {
                             Log.i(TAG, String.format("current: %s, prev: %s", currentTarget, previusTarget));
 
-                            Pair<Lesson, Bitmap> pair = pairObjectPool.validate(currentTarget);
-                            if (pair == null) {
+                            Lesson existingLesson = pairObjectPool.findExistingLesson(currentTarget);
+                            if (existingLesson == null) {
                                 FirebaseHelper.timetableReference.child(currentTarget).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -288,7 +285,7 @@ public class MyAR implements AR {
                                         curLesson = dataSnapshot.getValue(Lesson.class);
                                         new Thread(() -> {
                                             //bitmap = imageProcessing.generateBitmap(curLesson);
-                                            bitmap = pairObjectPool.checkOut(curLesson).second;
+                                            bitmap = pairObjectPool.checkOut(curLesson).getBitmap();
                                             TextureHelper.updateBitmap(bitmap);
                                         }).start();
                                         Log.i(TAG, curLesson.toString());
@@ -301,7 +298,7 @@ public class MyAR implements AR {
                                 });
                             }
                             else{
-                                bitmap = pair.second;
+                                bitmap = existingLesson.getBitmap();
                                 TextureHelper.updateBitmap(bitmap);
                             }
                         }
