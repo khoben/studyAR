@@ -64,7 +64,7 @@ public class MyAR implements AR {
 
     private final Vec2I cameraResolution = new Vec2I(1280, 720);
     private Vec2I viewSize = new Vec2I(0, 0);
-    private Vec4I viewport = new Vec4I(0, 0, 1280, 720);
+    private Vec4I viewport = new Vec4I(0, 0, cameraResolution.data[0], cameraResolution.data[1]);
 
     private String currentTarget;
     private String previusTarget;
@@ -147,7 +147,7 @@ public class MyAR implements AR {
 
 
         for (String type : allTypes) {
-            ARUtils. loadAllFromJsonFile(tracker, String.format(PATH_TO_MARKERS, type));
+            ARUtils.loadAllFromJsonFile(tracker, String.format(PATH_TO_MARKERS, type));
         }
 
         trackers.add(tracker);
@@ -296,8 +296,7 @@ public class MyAR implements AR {
                                         Log.e(TAG, databaseError.getMessage());
                                     }
                                 });
-                            }
-                            else{
+                            } else {
                                 bitmap = existingLesson.getBitmap();
                                 TextureHelper.updateBitmap(bitmap);
                             }

@@ -21,6 +21,9 @@ import android.graphics.Shader;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.khoben.samples.studyar.Rubberstamp.RubberStampPosition.CENTER;
 
 
@@ -33,7 +36,7 @@ public class RubberStampConfig {
     @ColorInt private int mTextBackgroundColor;
     private String mTypeFacePath;
     private RubberStampPosition mRubberStampPosition;
-    private String mRubberStampString[];
+    private Map<String,String> mRubberStampString;
     private Bitmap mRubberStampBitmap;
     private int mAplha;
     private Shader mTextShader;
@@ -94,7 +97,7 @@ public class RubberStampConfig {
         return mRubberStampPosition;
     }
 
-    public String[] getRubberStampString() {
+    public Map<String, String> getRubberStampString() {
         return mRubberStampString;
     }
 
@@ -155,7 +158,7 @@ public class RubberStampConfig {
         @ColorInt private int mTextBackgroundColor;
         private String mTypeFacePath;
         private RubberStampPosition mRubberStampPosition = CENTER;
-        private String[] mRubberStampString;
+        private Map<String,String> mRubberStampString;
         private Bitmap mRubberStampBitmap;
         private int mAlpha = 255;
         private Shader mTextShader;
@@ -213,7 +216,7 @@ public class RubberStampConfig {
             return this;
         }
 
-        public RubberStampConfigBuilder rubberStamp(final String[] rubberStampString) {
+        public RubberStampConfigBuilder rubberStamp(final Map<String, String> rubberStampString) {
             this.mRubberStampString = rubberStampString;
             return this;
         }

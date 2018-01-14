@@ -20,6 +20,10 @@ import com.khoben.samples.studyar.Rubberstamp.RubberStampPosition;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ImageProcessing {
     private static final String TAG = "ImageProcessing";
@@ -32,6 +36,8 @@ public class ImageProcessing {
 
     private final static String boldFontPath = "fonts/Roboto-Bold.ttf";
     private final static String regularFontPath = "fonts/Roboto-Regular.ttf";
+    private final static String italicFontPath = "fonts/Roboto-Italic.ttf";
+    private final static String lightItalicFontPath = "fonts/Roboto-LightItalic.ttf";
     private final int fontSize = 100;
 
     private final int marginLeft = 30;
@@ -69,30 +75,22 @@ public class ImageProcessing {
 
         Log.i(TAG, lesson.toString());
 
-        String[] lessonClassStringFields = {
-                String.format("Аудитория №%s", lesson.getAud()),
-                lesson.getSubject(),
-                lesson.getFio(),
-                lesson.getDegree()
-        };
+        Map<String, String> lessonClassStringFields = new LinkedHashMap<>();
+
+        lessonClassStringFields.put(String.format("Аудитория №%s", lesson.getAud()), boldFontPath);
+        lessonClassStringFields.put(lesson.getSubject(), regularFontPath);
+        lessonClassStringFields.put(lesson.getFio(), regularFontPath);
+        lessonClassStringFields.put(lesson.getDegree(), lightItalicFontPath);
 
         int maxWidth = 0;
         int cur;
-        for (String string : lessonClassStringFields) {
-            if (string.contains("Aудитория")) {
-                cur = getStringWidth(string, boldFontPath);
-                if (cur > maxWidth)
-                    maxWidth = cur;
-            } else {
-                cur = getStringWidth(string, regularFontPath);
-                if (cur > maxWidth)
-                    maxWidth = cur;
-            }
+        for (String string : lessonClassStringFields.keySet()) {
+            cur = getStringWidth(string, lessonClassStringFields.get(string));
+            if (cur > maxWidth)
+                maxWidth = cur;
         }
 
-        String firstname = lessonClassStringFields[2].split(" ")[0];
-
-        teacherProfileBitmap = getBitmapFromAsset(mainActivity, String.format("teachers/%s.jpg", firstname));
+        teacherProfileBitmap = getBitmapFromAsset(mainActivity, String.format("teachers/%s.jpg", lesson.getFio().split(" ")[0]));
 
         if (teacherProfileBitmap == null)
             return null;
@@ -100,7 +98,7 @@ public class ImageProcessing {
         teacherProfileBitmap = Bitmap.createScaledBitmap(teacherProfileBitmap, (teacherProfileBitmap.getWidth() * scaleBitmapFactor),
                 (teacherProfileBitmap.getHeight() * scaleBitmapFactor), true);
 
-        int amountLines = lessonClassStringFields.length;
+        int amountLines = lessonClassStringFields.size();
 
         mainBitmap = Bitmap.createBitmap(maxWidth + teacherProfileBitmap.getWidth() + marginLeft * 4,
                 fontSize * amountLines + (amountLines + 2) * marginTop, Bitmap.Config.ARGB_8888);

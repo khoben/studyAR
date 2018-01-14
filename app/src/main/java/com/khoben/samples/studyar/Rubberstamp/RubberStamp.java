@@ -31,6 +31,9 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Pair;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.khoben.samples.studyar.Rubberstamp.RubberStampPosition.CUSTOM;
 import static com.khoben.samples.studyar.Rubberstamp.RubberStampPosition.TILE;
 
@@ -104,13 +107,6 @@ public class RubberStamp {
 
         paint.setTextSize(config.getTextSize());
 
-        String typeFacePath = config.getTypeFacePath();
-        // Add font typeface if its present in the config.
-        if (!TextUtils.isEmpty(typeFacePath)) {
-            Typeface typeface = Typeface.createFromAsset(mContext.getAssets(), typeFacePath);
-            paint.setTypeface(typeface);
-        }
-
         Shader shader = config.getTextShader();
         // Add shader if its present in the config.
         if (shader != null) {
@@ -126,11 +122,14 @@ public class RubberStamp {
                     config.getTextShadowColor());
         }
 
-        String[] rubberStampString = config.getRubberStampString();
+        Map<String,String> rubberStampString = config.getRubberStampString();
 
         int startH = 0;
 
-        for (String str : rubberStampString) {
+        for (String str : config.getRubberStampString().keySet()) {
+
+            Typeface typeface = Typeface.createFromAsset(mContext.getAssets(), config.getRubberStampString().get(str));
+            paint.setTypeface(typeface);
 
             paint.getTextBounds(str, 0, str.length(), bounds);
 
