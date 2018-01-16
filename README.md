@@ -11,4 +11,3 @@ Course project on "Augmented Reality in the educational process"
 ## Tests
 
 ![img1](https://github.com/khoben/studyAR/blob/master/README.md-images/Screenshot_1.png)
-![img2](https://github.com/khoben/studyAR/blob/master/README.md-images/Screenshot_2.png)
