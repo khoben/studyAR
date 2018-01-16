@@ -73,7 +73,9 @@ public class MyAR implements AR {
 
     private String PATH_TO_MARKERS = "json/%s_sign_aud.json";
     private final String[] allTypes = {
-            "shapes"
+            "shapes",
+            "full",
+            "number"
     };
 
     private Bitmap bitmap;

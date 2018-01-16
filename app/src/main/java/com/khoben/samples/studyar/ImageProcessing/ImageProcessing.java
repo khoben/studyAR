@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class ImageProcessing {
     private static final String TAG = "ImageProcessing";
@@ -75,7 +76,7 @@ public class ImageProcessing {
 
         Log.i(TAG, lesson.toString());
 
-        Map<String, String> lessonClassStringFields = new LinkedHashMap<>();
+        Map<String, String> lessonClassStringFields = new ConcurrentSkipListMap<>();
 
         lessonClassStringFields.put(String.format("Аудитория №%s", lesson.getAud()), boldFontPath);
         lessonClassStringFields.put(lesson.getSubject(), regularFontPath);
